@@ -29,7 +29,7 @@ form.secretAnswer = readline("#{question}: ")
 page = form.submit
 
 form = page.form('actionForm')
-form.password = readline('NW Bank Password: ', :quiet)
+form.password = readline('NW Bank password: ', :quiet)
 page = form.submit
 
 form = page.form('downloadActivityForm')
@@ -38,11 +38,17 @@ to_date = Date.today
 form.from = from_date.strftime('%m/%d/%Y')
 form.to = to_date.strftime('%m/%d/%Y')
 
+username = readline('Wesabe username: ')
+password = readline('Wesabe password: ', :quiet)
+wesabe = Wesabe.new(username, password)
+
 settings['accounts'].each do |account|
   form.number = account['account_id']
   export = form.submit
-  File.open "#{account['wesabe_name']}.ofx", 'w' do |f|
-    f.write export.body.strip
-  end
+
+  acct = wesabe.accounts.find { |a| a.name == account['wesabe_name'] }
+  upload = acct.new_upload
+  upload.statement = export.body.strip
+  upload.upload!
 end
 
