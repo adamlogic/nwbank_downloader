@@ -1,0 +1,8 @@
+username: 000000000
+
+accounts:
+  - wesabe_name: Checking
+    account_id: 000000000000
+
+  - wesabe_name: Savings
+    account_id: 000000000000
