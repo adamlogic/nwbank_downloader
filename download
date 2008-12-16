@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
 require 'mechanize'
 require 'wesabe'
+require 'logger'
 
 settings = YAML.load_file('settings.yml')
+logger = Logger.new('logfile.log', 3, 10000)
+logger.sev_threshold = Logger::DEBUG
 
 def readline(prompt=nil, quiet=nil)
   system "stty -echo" if quiet
@@ -14,6 +17,8 @@ ensure
     puts
   end
 end
+
+logger.debug "\n\n\nDOWNLOADER STARTED AT #{Time.now}\n"
 
 agent = WWW::Mechanize.new
 agent.user_agent_alias = 'Windows IE 7'
@@ -43,12 +48,20 @@ password = readline('Wesabe password: ', :quiet)
 wesabe = Wesabe.new(username, password)
 
 settings['accounts'].each do |account|
+  logger.debug 'SUBMITTING EXPORT REQUEST...'
   form.number = account['account_id']
   export = form.submit
+  logger.debug export.body.strip[0..100]
+  
+  unless export.is_a? WWW::Mechanize::Page
+    logger.debug "FINDING ACCOUNT '#{account['wesabe_name']}'..."
+    acct = wesabe.accounts.find { |a| a.name == account['wesabe_name'] }
+    logger.debug acct.inspect
 
-  acct = wesabe.accounts.find { |a| a.name == account['wesabe_name'] }
-  upload = acct.new_upload
-  upload.statement = export.body.strip
-  upload.upload!
+    upload = acct.new_upload
+    upload.statement = export.body.strip
+    upload.upload!
+  end
 end
 
+logger.close
