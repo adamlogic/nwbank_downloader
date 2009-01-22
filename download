@@ -29,7 +29,7 @@ form.userName = settings['username']
 page = form.submit
 
 form = page.form('actionForm')
-question = page.search('td.textBold:last').innerHTML.gsub(/&nbsp;/, '')
+question = page.search('td.textBold:last').text.gsub(/&nbsp;/, '')
 form.secretAnswer = readline("#{question}: ")
 page = form.submit
 
